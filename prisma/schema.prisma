@@ -16,14 +16,14 @@ datasource db {
 model User {
   id       Int     @id @default(autoincrement())
   username String
-  email    String @unique
+  email    String 
   password String
   token    Int      @default(0)
   users   Json?
   roleId Int
   adminId Int?
   isActive Int      @default(0)
-  userIp   String
+  userIp   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
@@ -85,7 +85,7 @@ model Client {
   companyName String
   address String
   agreementDate String
-  email String
+  email String @unique
   contactNo String
   noOfUsers Int
   userIdDemo String

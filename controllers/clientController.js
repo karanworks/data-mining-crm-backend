@@ -31,6 +31,12 @@ class ClientController {
               },
             });
 
+            // const users = await prisma.user.findMany({
+            //   where: {
+            //     email: client.email,
+            //   },
+            // });
+
             return { ...client, type: role.name };
           })
         );
@@ -193,6 +199,24 @@ class ClientController {
       } else {
         response.error(res, "Client does not exist! ");
       }
+    } catch (error) {
+      console.log("error while deleting client ", error);
+    }
+  }
+
+  async getClientUsers(req, res) {
+    try {
+      const { clientEmail } = req.params;
+
+      const clientUsers = await prisma.user.findMany({
+        where: {
+          email: clientEmail,
+        },
+      });
+
+      console.log("CLIENT USERS HERE ->", { clientUsers });
+
+      response.success(res, "Client users fetched!", clientUsers);
     } catch (error) {
       console.log("error while deleting client ", error);
     }

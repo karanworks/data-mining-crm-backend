@@ -8,10 +8,16 @@ const getToken = require("../utils/getToken");
 class AdminAuthController {
   async userRegisterPost(req, res) {
     try {
-      const { name, email, password, roleId } = req.body;
-      const userIp = req.socket.remoteAddress;
-
-      console.log("CENTER REGISTER BODY ->", req.body);
+      // no of users is for the clients
+      const {
+        name,
+        email,
+        password,
+        roleId,
+        noOfUsers,
+        userIdDemo,
+        userIdLive,
+      } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
 
@@ -30,13 +36,41 @@ class AdminAuthController {
               alreadyRegistered
             );
           }
+        } else if (noOfUsers || userIdDemo || userIdDemo) {
+          const prefix = userIdDemo ? userIdDemo : userIdLive;
+          const adminId = loggedInUser?.id;
+          const role = 4;
+
+          for (let i = 1; i <= noOfUsers; i++) {
+            const newUser = await prisma.user.create({
+              data: {
+                username: `${prefix}_${i}`,
+                email,
+                password,
+                roleId: role,
+                adminId: adminId,
+              },
+            });
+
+            // Assigning role
+            await prisma.roleAssign.create({
+              data: {
+                roleId: role,
+                userId: newUser.id,
+              },
+            });
+          }
+
+          return response.success(
+            res,
+            `${noOfUsers} users registered successfully!`
+          );
         } else {
           const newUser = await prisma.user.create({
             data: {
               username: name,
               email,
               password,
-              userIp,
               roleId: parseInt(roleId),
               adminId: loggedInUser.id,
             },
@@ -58,7 +92,6 @@ class AdminAuthController {
             username: name,
             email,
             password,
-            userIp,
             roleId: 1,
           },
         });
