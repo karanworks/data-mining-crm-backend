@@ -19,8 +19,6 @@ model User {
   email    String @unique
   password String
   token    Int      @default(0)
-  centers Center[]
-  bankCodes BankCode[]
   users   Json?
   roleId Int
   adminId Int?
@@ -82,49 +80,26 @@ model RoleAssign{
   updatedAt DateTime @default(now())
 }
 
-model Center {
+model Client {
   id Int @id @default(autoincrement())
-  centerName String
-  ownerName String
-  mobileNumber String
-  location String
-  userType String
-  emailId String
-  password String
-  branchId String
-  status Int?
-  addedBy Int? 
-  user User? @relation(fields: [addedBy], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())  
-
-}
-
-model BankCode{
-  id Int @id @default(autoincrement())
-  centerName String
-  bankName String
-  userNameCode String
-  password String
-  userStatus String?
-  addedBy Int? 
-  user User? @relation(fields: [addedBy], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())  
-}
-
-model CenterUser{
-  id Int @id @default(autoincrement())
-  name String
+  companyName String
+  address String
+  agreementDate String
   email String
+  contactNo String
+  noOfUsers Int
+  userIdDemo String
+  userIdLive String
   password String
-  location String
-  branchId String
-  userType String
+  startTime String
+  endTime String
+  roleId Int
+  addedBy Int
   status Int
-  addedBy Int? 
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())  
+  updatedAt DateTime @default(now())
+
+
 
 
 }

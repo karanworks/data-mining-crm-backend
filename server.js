@@ -8,8 +8,7 @@ const homeRouter = require("./routes/home");
 const adminAuthRouter = require("./routes/adminAuth");
 const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
-
-const centerRouter = require("./routes/center");
+const clientRouter = require("./routes/client");
 const bankCodeRouter = require("./routes/bankCode");
 
 // cookie parser
@@ -49,7 +48,7 @@ app.use("/", adminAuthRouter);
 app.use("/", adminUsersRouter);
 app.use("/", roleRouter);
 app.use("/", mappingRouter);
-app.use("/", centerRouter);
+app.use("/", clientRouter);
 app.use("/", bankCodeRouter);
 
 app.listen(process.env.PORT || 3003, () => {
