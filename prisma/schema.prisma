@@ -24,6 +24,8 @@ model User {
   adminId Int?
   isActive Int      @default(0)
   userIp   String?
+  dataAssigned Int @default(0)
+  completed Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }

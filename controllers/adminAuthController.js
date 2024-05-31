@@ -188,7 +188,7 @@ class AdminAuthController {
 
   async userUpdatePatch(req, res) {
     try {
-      const { name, email, password, roleId } = req.body;
+      const { name, email, password, roleId, status } = req.body;
 
       const { userId } = req.params;
 
@@ -220,6 +220,7 @@ class AdminAuthController {
               email,
               password,
               roleId: parseInt(roleId),
+              status,
             },
           });
 
