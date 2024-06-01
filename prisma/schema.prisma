@@ -20,10 +20,11 @@ model User {
   password String
   token    Int      @default(0)
   users   Json?
-  roleId Int
+  roleId Int?
   adminId Int?
   isActive Int      @default(0)
   userIp   String?
+  status Int?
   dataAssigned Int @default(0)
   completed Int @default(0)
   createdAt DateTime @default(now())
@@ -100,8 +101,4 @@ model Client {
   status Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-
-
-
-
 }
