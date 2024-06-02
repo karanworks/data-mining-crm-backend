@@ -50,6 +50,8 @@ class AdminAuthController {
           const role = 4;
 
           if (alreadyExistingUserForSameClient.length > 0) {
+            const newUsers = [];
+
             for (
               let i = alreadyExistingUserForSameClient.length + 1;
               i <= alreadyExistingUserForSameClient.length + noOfUsers;
@@ -72,12 +74,17 @@ class AdminAuthController {
                   userId: newUser.id,
                 },
               });
+              newUsers.push(newUser);
             }
+
             return response.success(
               res,
-              `${noOfUsers} users registered successfully!`
+              `${noOfUsers} users registered successfully!`,
+              newUsers
             );
           } else {
+            const newUsers = [];
+
             for (let i = 1; i <= noOfUsers; i++) {
               const newUser = await prisma.user.create({
                 data: {
@@ -96,10 +103,13 @@ class AdminAuthController {
                   userId: newUser.id,
                 },
               });
+
+              newUsers.push(newUser);
             }
             return response.success(
               res,
-              `${noOfUsers} users registered successfully!`
+              `${noOfUsers} users registered successfully!`,
+              newUsers
             );
           }
         } else {
@@ -164,10 +174,10 @@ class AdminAuthController {
         response.error(res, "No user found with this email!");
       } else if (password === userFound.password) {
         // checking if user is active to prevent him logging again
-        // if (userFound.isActive) {
-        //   response.error(res, "You were not logged out properly!");
-        //   return;
-        // }
+        if (!userFound.status) {
+          response.error(res, "Your account has been deactivated!");
+          return;
+        }
 
         // generates a number between 1000 and 10000 to be used as token
         const loginToken = Math.floor(
