@@ -10,6 +10,7 @@ const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
 const clientRouter = require("./routes/client");
 const bankCodeRouter = require("./routes/bankCode");
+const addDataRouter = require("./routes/addData");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -50,6 +51,7 @@ app.use("/", roleRouter);
 app.use("/", mappingRouter);
 app.use("/", clientRouter);
 app.use("/", bankCodeRouter);
+app.use("/", addDataRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

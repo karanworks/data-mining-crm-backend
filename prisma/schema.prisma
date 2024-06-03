@@ -102,3 +102,13 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
+
+model AssignedData {
+  id Int @id @default(autoincrement())
+  url String
+  userId Int
+  status Int
+  addedBy Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
