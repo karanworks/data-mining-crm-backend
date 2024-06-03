@@ -175,33 +175,90 @@ class ClientController {
 
   async clientRemoveDelete(req, res) {
     try {
-      const { clientId } = req.params;
+      const { clientId } = req.body;
 
-      console.log("DELETE API CALLED WITH MULTIPLE USERS ->", clientId);
+      if (Array.isArray(clientId)) {
+        const clientsFound = await prisma.client.findMany({
+          where: {
+            id: {
+              in: clientId,
+            },
+          },
+        });
 
-      const clientFound = await prisma.client.findFirst({
-        where: {
-          id: parseInt(clientId),
-        },
-      });
+        const clientsToBeDeletedIds = clientsFound?.map((client) => {
+          return client.id;
+        });
 
-      if (clientFound) {
-        const deletedClient = await prisma.client.delete({
+        if (clientsToBeDeletedIds.length > 0) {
+          const deletedClient = await prisma.client.deleteMany({
+            where: {
+              id: {
+                in: clientsToBeDeletedIds,
+              },
+            },
+          });
+
+          response.success(res, "Cilent deleted successfully!", {
+            deletedClient: clientsFound,
+          });
+        } else {
+          response.error(res, "Client does not exist! ");
+        }
+      } else {
+        const clientFound = await prisma.client.findFirst({
           where: {
             id: parseInt(clientId),
           },
         });
 
-        response.success(res, "Cilent deleted successfully!", {
-          deletedClient,
-        });
-      } else {
-        response.error(res, "Client does not exist! ");
+        if (clientFound) {
+          const deletedClient = await prisma.client.delete({
+            where: {
+              id: parseInt(clientId),
+            },
+          });
+
+          response.success(res, "Cilent deleted successfully!", {
+            deletedClient,
+          });
+        } else {
+          response.error(res, "Client does not exist! ");
+        }
       }
     } catch (error) {
       console.log("error while deleting client ", error);
     }
   }
+  // async clientRemoveDelete(req, res) {
+  //   try {
+  //     const { clientId } = req.params;
+
+  //     console.log("DELETE API CALLED WITH MULTIPLE USERS ->", clientId);
+
+  //     const clientFound = await prisma.client.findFirst({
+  //       where: {
+  //         id: parseInt(clientId),
+  //       },
+  //     });
+
+  //     if (clientFound) {
+  //       const deletedClient = await prisma.client.delete({
+  //         where: {
+  //           id: parseInt(clientId),
+  //         },
+  //       });
+
+  //       response.success(res, "Cilent deleted successfully!", {
+  //         deletedClient,
+  //       });
+  //     } else {
+  //       response.error(res, "Client does not exist! ");
+  //     }
+  //   } catch (error) {
+  //     console.log("error while deleting client ", error);
+  //   }
+  // }
 
   async getClientUsers(req, res) {
     try {
