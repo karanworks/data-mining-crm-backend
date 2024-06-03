@@ -4,6 +4,8 @@ const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
 const getMenus = require("../utils/getMenus");
 const getToken = require("../utils/getToken");
+const { parse } = require("path");
+const { type } = require("os");
 
 class ClientController {
   async clientsGet(req, res) {
@@ -133,6 +135,8 @@ class ClientController {
 
       const { clientId } = req.params;
 
+      console.log("ROLE ID WHILE UPDATING ->", roleId);
+
       // finding user from id
       const clientFound = await prisma.client.findFirst({
         where: {
@@ -157,13 +161,19 @@ class ClientController {
             password,
             startTime,
             endTime,
-            roleId,
+            roleId: parseInt(roleId),
             status,
           },
         });
 
+        const updatedRoleName = await prisma.role.findFirst({
+          where: {
+            id: parseInt(roleId),
+          },
+        });
+
         response.success(res, "Client updated successfully!", {
-          updatedClient,
+          updatedClient: { ...updatedClient, type: updatedRoleName.name },
         });
       } else {
         response.error(res, "Client not found!");
@@ -199,6 +209,39 @@ class ClientController {
             },
           });
 
+          const emailsOfDeletedClients = clientsFound?.map((client) => {
+            return client.email;
+          });
+
+          console.log(
+            "EMAI OF emailsOfDeletedClients ->",
+            emailsOfDeletedClients
+          );
+          const usersOfDeletedClients = await prisma.user.findMany({
+            where: {
+              email: {
+                in: emailsOfDeletedClients,
+              },
+            },
+          });
+
+          console.log(
+            "USER OF usersOfDeletedClients ->",
+            usersOfDeletedClients
+          );
+
+          const idOfUsersToBeDeleted = usersOfDeletedClients?.map((user) => {
+            return user.id;
+          });
+
+          const deletedUser = await prisma.user.deleteMany({
+            where: {
+              id: {
+                in: idOfUsersToBeDeleted,
+              },
+            },
+          });
+
           response.success(res, "Cilent deleted successfully!", {
             deletedClient: clientsFound,
           });
@@ -216,6 +259,18 @@ class ClientController {
           const deletedClient = await prisma.client.delete({
             where: {
               id: parseInt(clientId),
+            },
+          });
+
+          const userToBeDeleted = await prisma.user.findFirst({
+            where: {
+              email: deletedClient?.email,
+            },
+          });
+
+          const deletedUser = await prisma.user.delete({
+            where: {
+              id: userToBeDeleted.id,
             },
           });
 

@@ -45,7 +45,8 @@ class AdminAuthController {
             },
           });
 
-          const prefix = userIdDemo ? userIdDemo : userIdLive;
+          const demoPrefix = userIdDemo;
+          const livePrefix = userIdLive;
           const adminId = loggedInUser?.id;
           const role = 4;
 
@@ -53,13 +54,23 @@ class AdminAuthController {
             const newUsers = [];
 
             for (
-              let i = alreadyExistingUserForSameClient.length + 1;
-              i <= alreadyExistingUserForSameClient.length + noOfUsers;
+              let i = alreadyExistingUserForSameClient.length / 2 + 1;
+              i <= alreadyExistingUserForSameClient.length / 2 + noOfUsers;
               i++
             ) {
-              const newUser = await prisma.user.create({
+              const newDemoUser = await prisma.user.create({
                 data: {
-                  username: `${prefix}_${i}`,
+                  username: `${demoPrefix}_${i}`,
+                  email,
+                  password,
+                  roleId: role,
+                  adminId: adminId,
+                  status: 1,
+                },
+              });
+              const newLiveUser = await prisma.user.create({
+                data: {
+                  username: `${livePrefix}_${i}`,
                   email,
                   password,
                   roleId: role,
@@ -71,10 +82,16 @@ class AdminAuthController {
               await prisma.roleAssign.create({
                 data: {
                   roleId: role,
-                  userId: newUser.id,
+                  userId: newDemoUser.id,
                 },
               });
-              newUsers.push(newUser);
+              await prisma.roleAssign.create({
+                data: {
+                  roleId: role,
+                  userId: newLiveUser.id,
+                },
+              });
+              newUsers.push(newDemoUser, newLiveUser);
             }
 
             return response.success(
@@ -86,9 +103,19 @@ class AdminAuthController {
             const newUsers = [];
 
             for (let i = 1; i <= noOfUsers; i++) {
-              const newUser = await prisma.user.create({
+              const newDemoUser = await prisma.user.create({
                 data: {
-                  username: `${prefix}_${i}`,
+                  username: `${demoPrefix}_${i}`,
+                  email,
+                  password,
+                  roleId: role,
+                  adminId: adminId,
+                  status: 1,
+                },
+              });
+              const newLiveUser = await prisma.user.create({
+                data: {
+                  username: `${livePrefix}_${i}`,
                   email,
                   password,
                   roleId: role,
@@ -100,11 +127,17 @@ class AdminAuthController {
               await prisma.roleAssign.create({
                 data: {
                   roleId: role,
-                  userId: newUser.id,
+                  userId: newDemoUser.id,
+                },
+              });
+              await prisma.roleAssign.create({
+                data: {
+                  roleId: role,
+                  userId: newLiveUser.id,
                 },
               });
 
-              newUsers.push(newUser);
+              newUsers.push(newDemoUser, newLiveUser);
             }
             return response.success(
               res,
