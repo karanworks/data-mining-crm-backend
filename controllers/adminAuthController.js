@@ -21,11 +21,13 @@ class AdminAuthController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
-      const alreadyRegistered = await prisma.user.findFirst({
-        where: {
-          OR: [{ email }],
-        },
-      });
+      // const alreadyRegistered = await prisma.user.findFirst({
+      //   where: {
+      //     OR: [{ email }],
+      //   },
+      // });
+
+      const alreadyRegistered = false; // temporary variable for testing uncomment the alreadyRegistered code above
 
       if (loggedInUser) {
         if (alreadyRegistered) {
@@ -37,34 +39,79 @@ class AdminAuthController {
             );
           }
         } else if (noOfUsers || userIdDemo || userIdDemo) {
+          const alreadyExistingUserForSameClient = await prisma.user.findMany({
+            where: {
+              email,
+            },
+          });
+
           const prefix = userIdDemo ? userIdDemo : userIdLive;
           const adminId = loggedInUser?.id;
           const role = 4;
 
-          for (let i = 1; i <= noOfUsers; i++) {
-            const newUser = await prisma.user.create({
-              data: {
-                username: `${prefix}_${i}`,
-                email,
-                password,
-                roleId: role,
-                adminId: adminId,
-              },
-            });
+          if (alreadyExistingUserForSameClient.length > 0) {
+            const newUsers = [];
 
-            // Assigning role
-            await prisma.roleAssign.create({
-              data: {
-                roleId: role,
-                userId: newUser.id,
-              },
-            });
+            for (
+              let i = alreadyExistingUserForSameClient.length + 1;
+              i <= alreadyExistingUserForSameClient.length + noOfUsers;
+              i++
+            ) {
+              const newUser = await prisma.user.create({
+                data: {
+                  username: `${prefix}_${i}`,
+                  email,
+                  password,
+                  roleId: role,
+                  adminId: adminId,
+                  status: 1,
+                },
+              });
+              // Assigning role
+              await prisma.roleAssign.create({
+                data: {
+                  roleId: role,
+                  userId: newUser.id,
+                },
+              });
+              newUsers.push(newUser);
+            }
+
+            return response.success(
+              res,
+              `${noOfUsers} users registered successfully!`,
+              newUsers
+            );
+          } else {
+            const newUsers = [];
+
+            for (let i = 1; i <= noOfUsers; i++) {
+              const newUser = await prisma.user.create({
+                data: {
+                  username: `${prefix}_${i}`,
+                  email,
+                  password,
+                  roleId: role,
+                  adminId: adminId,
+                  status: 1,
+                },
+              });
+              // Assigning role
+              await prisma.roleAssign.create({
+                data: {
+                  roleId: role,
+                  userId: newUser.id,
+                },
+              });
+
+              newUsers.push(newUser);
+            }
+            return response.success(
+              res,
+              `${noOfUsers} users registered successfully!`,
+              newUsers
+            );
           }
-
-          return response.success(
-            res,
-            `${noOfUsers} users registered successfully!`
-          );
         } else {
           const newUser = await prisma.user.create({
             data: {
@@ -73,6 +120,7 @@ class AdminAuthController {
               password,
               roleId: parseInt(roleId),
               adminId: loggedInUser.id,
+              status: 1,
             },
           });
 
@@ -93,6 +141,7 @@ class AdminAuthController {
             email,
             password,
             roleId: 1,
+            status: 1,
           },
         });
 
@@ -112,12 +161,12 @@ class AdminAuthController {
 
   async userLoginPost(req, res) {
     try {
-      const { email, password } = req.body;
+      const { usernameOrEmail, password } = req.body;
       const userIp = req.socket.remoteAddress;
 
       let userFound = await prisma.user.findFirst({
         where: {
-          email,
+          OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
         },
       });
 
@@ -125,8 +174,8 @@ class AdminAuthController {
         response.error(res, "No user found with this email!");
       } else if (password === userFound.password) {
         // checking if user is active to prevent him logging again
-        if (userFound.isActive) {
-          response.error(res, "You were not logged out properly!");
+        if (!userFound.status) {
+          response.error(res, "Your account has been deactivated!");
           return;
         }
 
@@ -139,7 +188,6 @@ class AdminAuthController {
         const updatedAdmin = await prisma.user.update({
           where: {
             id: userFound.id,
-            email,
           },
           data: {
             isActive: 1,
@@ -213,7 +261,7 @@ class AdminAuthController {
         } else {
           const updatedUser = await prisma.user.update({
             where: {
-              email,
+              id: userFound.id,
             },
             data: {
               username: name,

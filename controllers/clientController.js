@@ -75,8 +75,6 @@ class ClientController {
         roleId,
       } = req.body;
 
-      console.log("CLIENT CREATE API CALLED", req.body);
-
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
@@ -181,25 +179,25 @@ class ClientController {
 
       console.log("DELETE API CALLED WITH MULTIPLE USERS ->", clientId);
 
-      // const clientFound = await prisma.client.findFirst({
-      //   where: {
-      //     id: parseInt(clientId),
-      //   },
-      // });
+      const clientFound = await prisma.client.findFirst({
+        where: {
+          id: parseInt(clientId),
+        },
+      });
 
-      // if (clientFound) {
-      //   const deletedClient = await prisma.client.delete({
-      //     where: {
-      //       id: parseInt(clientId),
-      //     },
-      //   });
+      if (clientFound) {
+        const deletedClient = await prisma.client.delete({
+          where: {
+            id: parseInt(clientId),
+          },
+        });
 
-      //   response.success(res, "Cilent deleted successfully!", {
-      //     deletedClient,
-      //   });
-      // } else {
-      response.error(res, "Client does not exist! ");
-      // }
+        response.success(res, "Cilent deleted successfully!", {
+          deletedClient,
+        });
+      } else {
+        response.error(res, "Client does not exist! ");
+      }
     } catch (error) {
       console.log("error while deleting client ", error);
     }
@@ -214,8 +212,6 @@ class ClientController {
           email: clientEmail,
         },
       });
-
-      console.log("CLIENT USERS HERE ->", { clientUsers });
 
       response.success(res, "Client users fetched!", clientUsers);
     } catch (error) {
