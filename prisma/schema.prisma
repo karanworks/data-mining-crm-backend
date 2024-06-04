@@ -112,3 +112,26 @@ model AssignedData {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
+
+model WebsiteData{
+  id Int @id @default(autoincrement())
+  urlId Int
+  websiteStatus String
+  companyLogo String?
+  companyName String
+  contactNo1 String?
+  contactNo2 String?
+  emailId1 String?
+  emailId2 String?
+  faxNo String?
+  businessType String
+  address String
+  companyProfile String
+  city String
+  state String
+  pinCode String
+  country String
+  userId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
