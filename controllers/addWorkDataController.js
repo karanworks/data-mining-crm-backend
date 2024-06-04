@@ -43,6 +43,7 @@ class AddWorkDataController {
     try {
       const {
         urlId,
+        url,
         websiteStatus,
         companyLogo,
         companyName,
@@ -62,12 +63,11 @@ class AddWorkDataController {
 
       const loggedInUser = await getLoggedInUser(req, res);
 
-      console.log("WEBSITE DATA ->", req.body);
-
       if (loggedInUser) {
         const newWebsiteData = await prisma.websiteData.create({
           data: {
             urlId,
+            url,
             websiteStatus,
             companyLogo,
             companyName,

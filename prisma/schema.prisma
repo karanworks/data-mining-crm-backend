@@ -116,6 +116,7 @@ model AssignedData {
 model WebsiteData{
   id Int @id @default(autoincrement())
   urlId Int
+  url String
   websiteStatus String
   companyLogo String?
   companyName String
