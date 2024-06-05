@@ -12,7 +12,7 @@ CompletedDataRouter.post(
   CompletedDataController.completedDataUpdatePatch
 );
 
-CompletedDataRouter.post(
+CompletedDataRouter.patch(
   "/completed-data/delete",
   CompletedDataController.completedDataRemoveDelete
 );

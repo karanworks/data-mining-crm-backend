@@ -98,8 +98,6 @@ class CompletedDataController {
           },
         });
 
-        console.log("DATA WHILE UPDATING COMPLETED DATA ->", req.body);
-
         response.success(res, "Data updated successfully!", {
           ...newWebsiteData,
         });
@@ -117,8 +115,8 @@ class CompletedDataController {
           where: {
             id: {
               in: dataId,
-              status: 1,
             },
+            status: 1,
           },
         });
 
@@ -127,12 +125,14 @@ class CompletedDataController {
         });
 
         if (dataId.length > 0) {
-          const deletedWebsiteData = await prisma.websiteData.deleteMany({
+          const deletedWebsiteData = await prisma.websiteData.updateMany({
             where: {
               id: {
                 in: dataId,
-                status: 1,
               },
+            },
+            data: {
+              status: 0,
             },
           });
 
@@ -162,9 +162,12 @@ class CompletedDataController {
         });
 
         if (websiteDataFound) {
-          const deletedWebsiteData = await prisma.websiteData.delete({
+          const deletedWebsiteData = await prisma.websiteData.update({
             where: {
               id: parseInt(dataId),
+            },
+            data: {
+              status: 0,
             },
           });
 
@@ -195,6 +198,93 @@ class CompletedDataController {
       console.log("error while deleting Website ", error);
     }
   }
+  // async completedDataRemoveDelete(req, res) {
+  //   try {
+  //     const { dataId } = req.body;
+
+  //     if (Array.isArray(dataId)) {
+  //       const websiteDataFound = await prisma.websiteData.findMany({
+  //         where: {
+  //           id: {
+  //             in: dataId,
+  //           },
+  //           status: 1,
+  //         },
+  //       });
+
+  //       const completedDataUrlIds = websiteDataFound?.map((data) => {
+  //         return data.urlId;
+  //       });
+
+  //       if (dataId.length > 0) {
+  //         const deletedWebsiteData = await prisma.websiteData.deleteMany({
+  //           where: {
+  //             id: {
+  //               in: dataId,
+  //             },
+  //             status: 1,
+  //           },
+  //         });
+
+  //         const updateUrlStatus = await prisma.assignedData.updateMany({
+  //           where: {
+  //             id: {
+  //               in: completedDataUrlIds,
+  //             },
+  //           },
+  //           data: {
+  //             status: 0,
+  //           },
+  //         });
+
+  //         response.success(res, "Website data deleted successfully!", {
+  //           deletedCompletedData: websiteDataFound,
+  //         });
+  //       } else {
+  //         response.error(res, "Website data does not exist! ");
+  //       }
+  //     } else {
+  //       const websiteDataFound = await prisma.websiteData.findFirst({
+  //         where: {
+  //           id: parseInt(dataId),
+  //           status: 1,
+  //         },
+  //       });
+
+  //       if (websiteDataFound) {
+  //         const deletedWebsiteData = await prisma.websiteData.delete({
+  //           where: {
+  //             id: parseInt(dataId),
+  //           },
+  //         });
+
+  //         const assignedDataForStatusUpdate =
+  //           await prisma.assignedData.findFirst({
+  //             where: {
+  //               id: deletedWebsiteData?.urlId,
+  //             },
+  //           });
+
+  //         const assignedDataInCompleted = await prisma.assignedData.update({
+  //           where: {
+  //             id: assignedDataForStatusUpdate.id,
+  //           },
+  //           data: {
+  //             status: 0,
+  //           },
+  //         });
+
+  //         response.success(res, "Website data deleted successfully!", {
+  //           deletedCompletedData: deletedWebsiteData,
+  //         });
+  //       } else {
+  //         response.error(res, "Website data does not exist! ");
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.log("error while deleting Website ", error);
+  //   }
+  // }
 }
 
 module.exports = new CompletedDataController();
