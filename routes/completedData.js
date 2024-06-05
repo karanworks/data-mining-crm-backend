@@ -17,4 +17,9 @@ CompletedDataRouter.patch(
   CompletedDataController.completedDataRemoveDelete
 );
 
+CompletedDataRouter.get(
+  "/completed-data/export-data",
+  CompletedDataController.completedDataExportData
+);
+
 module.exports = CompletedDataRouter;

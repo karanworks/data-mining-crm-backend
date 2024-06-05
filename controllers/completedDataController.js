@@ -2,6 +2,9 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+const path = require("path");
+const fs = require("fs");
 
 class CompletedDataController {
   async completedDataGet(req, res) {
@@ -198,93 +201,82 @@ class CompletedDataController {
       console.log("error while deleting Website ", error);
     }
   }
-  // async completedDataRemoveDelete(req, res) {
-  //   try {
-  //     const { dataId } = req.body;
 
-  //     if (Array.isArray(dataId)) {
-  //       const websiteDataFound = await prisma.websiteData.findMany({
-  //         where: {
-  //           id: {
-  //             in: dataId,
-  //           },
-  //           status: 1,
-  //         },
-  //       });
+  async completedDataExportData(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
 
-  //       const completedDataUrlIds = websiteDataFound?.map((data) => {
-  //         return data.urlId;
-  //       });
+      if (loggedInUser) {
+        const allFilledWebsiteData = await prisma.websiteData.findMany({
+          where: {
+            userId: loggedInUser.id,
+            status: 1,
+          },
+        });
 
-  //       if (dataId.length > 0) {
-  //         const deletedWebsiteData = await prisma.websiteData.deleteMany({
-  //           where: {
-  //             id: {
-  //               in: dataId,
-  //             },
-  //             status: 1,
-  //           },
-  //         });
+        const csvWriter = createCsvWriter({
+          path: "data.csv", // Path to the CSV file
+          header: [
+            { id: "id", title: "Id" },
+            { id: "url", title: "Url" },
+            { id: "urlId", title: "Url Id" },
+            { id: "userId", title: "User Id" },
+            { id: "websiteStatus", title: "Website Status" },
+            { id: "companyName", title: "Company Name" },
+            { id: "contactNo1", title: "Contact No 1" },
+            { id: "contactNo2", title: "Contact No 2" },
+            { id: "emailId1", title: "Email Id 1" },
+            { id: "emailId2", title: "Email Id 2" },
+            { id: "faxNo", title: "Fax No" },
+            { id: "businessType", title: "Business Type" },
+            { id: "address", title: "Address" },
+            { id: "companyProfile", title: "Company Profile" },
+            { id: "city", title: "City" },
+            { id: "state", title: "State" },
+            { id: "pinCode", title: "Pin Code" },
+            { id: "country", title: "Country" },
+          ],
+        });
 
-  //         const updateUrlStatus = await prisma.assignedData.updateMany({
-  //           where: {
-  //             id: {
-  //               in: completedDataUrlIds,
-  //             },
-  //           },
-  //           data: {
-  //             status: 0,
-  //           },
-  //         });
+        csvWriter
+          .writeRecords(allFilledWebsiteData)
+          .then(() => {
+            const filePath = path.join("./", "data.csv");
 
-  //         response.success(res, "Website data deleted successfully!", {
-  //           deletedCompletedData: websiteDataFound,
-  //         });
-  //       } else {
-  //         response.error(res, "Website data does not exist! ");
-  //       }
-  //     } else {
-  //       const websiteDataFound = await prisma.websiteData.findFirst({
-  //         where: {
-  //           id: parseInt(dataId),
-  //           status: 1,
-  //         },
-  //       });
+            res.setHeader("Content-Type", "text/csv");
+            res.setHeader(
+              "Content-Disposition",
+              "attachment; filename=data.csv"
+            );
 
-  //       if (websiteDataFound) {
-  //         const deletedWebsiteData = await prisma.websiteData.delete({
-  //           where: {
-  //             id: parseInt(dataId),
-  //           },
-  //         });
-
-  //         const assignedDataForStatusUpdate =
-  //           await prisma.assignedData.findFirst({
-  //             where: {
-  //               id: deletedWebsiteData?.urlId,
-  //             },
-  //           });
-
-  //         const assignedDataInCompleted = await prisma.assignedData.update({
-  //           where: {
-  //             id: assignedDataForStatusUpdate.id,
-  //           },
-  //           data: {
-  //             status: 0,
-  //           },
-  //         });
-
-  //         response.success(res, "Website data deleted successfully!", {
-  //           deletedCompletedData: deletedWebsiteData,
-  //         });
-  //       } else {
-  //         response.error(res, "Website data does not exist! ");
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log("error while deleting Website ", error);
-  //   }
-  // }
+            res.download(filePath, "data.csv", (err) => {
+              if (err) {
+                console.error("Error sending CSV file:", err);
+                res.status(500).send("Error sending CSV file");
+              } else {
+                console.log("CSV file sent successfully!");
+                fs.unlink(filePath, (err) => {
+                  if (err) {
+                    console.error("Error deleting CSV file:", err);
+                  } else {
+                    console.log("CSV file deleted successfully!");
+                  }
+                });
+              }
+            });
+          })
+          .catch((error) => {
+            console.error("Error writing CSV file:", error);
+            res.status(500).send("Error writing CSV file");
+          });
+      }
+    } catch (error) {
+      console.log(
+        "error while exporting data in completed work data ->",
+        error
+      );
+    }
+  }
 }
 
 module.exports = new CompletedDataController();
