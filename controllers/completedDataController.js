@@ -18,12 +18,22 @@ class CompletedDataController {
           },
         });
 
-        const completedWorkData = await prisma.websiteData.findMany({
-          where: {
-            userId: loggedInUser.id,
-            status: 1,
-          },
-        });
+        let completedWorkData;
+
+        if (loggedInUser.roleId === 1) {
+          completedWorkData = await prisma.websiteData.findMany({
+            where: {
+              status: 1,
+            },
+          });
+        } else {
+          completedWorkData = await prisma.websiteData.findMany({
+            where: {
+              userId: loggedInUser.id,
+              status: 1,
+            },
+          });
+        }
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
@@ -275,6 +285,42 @@ class CompletedDataController {
         "error while exporting data in completed work data ->",
         error
       );
+    }
+  }
+
+  async completedDataFilterData(req, res) {
+    try {
+      const token = req.cookies.token;
+
+      if (token) {
+        const loggedInUser = await prisma.user.findFirst({
+          where: {
+            token: parseInt(token),
+          },
+        });
+
+        console.log("BODY WHILE FILTERING ->", req.body);
+        // let filteredData = await prisma.websiteData.findMany({
+        //   where: {
+        //     userId: loggedInUser.id,
+        //     status: 1,
+        //   },
+        // });
+
+        const { password, ...adminDataWithoutPassword } = loggedInUser;
+
+        response.success(res, "Completed Data fetched!", {
+          ...adminDataWithoutPassword,
+          completedWorkData,
+        });
+      } else {
+        // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
+        res
+          .status(401)
+          .json({ message: "user not already logged in.", status: "failure" });
+      }
+    } catch (error) {
+      console.log("error while getting completed data ", error);
     }
   }
 }

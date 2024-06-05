@@ -85,6 +85,7 @@ class AddWorkDataController {
             country,
             status: 1,
             userId: loggedInUser.id,
+            username: loggedInUser.username,
           },
         });
 

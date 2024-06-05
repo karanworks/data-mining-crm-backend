@@ -22,4 +22,9 @@ CompletedDataRouter.get(
   CompletedDataController.completedDataExportData
 );
 
+CompletedDataRouter.post(
+  "/completed-data/filter-data",
+  CompletedDataController.completedDataFilterData
+);
+
 module.exports = CompletedDataRouter;
