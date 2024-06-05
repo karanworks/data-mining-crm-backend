@@ -6,14 +6,12 @@ CompletedDataRouter.get(
   "/completed-data",
   CompletedDataController.completedDataGet
 );
-// CompletedDataRouter.post(
-//   "/add-work-data",
-//   CompletedDataController.addWorkDataCreatePost
-// );
-// CompletedDataRouter.patch(
-//   "/user/:userId/edit",
-//   CompletedDataController.addWorkDataUpdatePatch
-// );
+
+CompletedDataRouter.post(
+  "/completed-data/edit",
+  CompletedDataController.completedDataUpdatePatch
+);
+
 CompletedDataRouter.post(
   "/completed-data/delete",
   CompletedDataController.completedDataRemoveDelete

@@ -83,6 +83,7 @@ class AddWorkDataController {
             state,
             pinCode,
             country,
+            status: 1,
             userId: loggedInUser.id,
           },
         });

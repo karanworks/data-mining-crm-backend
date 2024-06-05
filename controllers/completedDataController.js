@@ -18,6 +18,7 @@ class CompletedDataController {
         const completedWorkData = await prisma.websiteData.findMany({
           where: {
             userId: loggedInUser.id,
+            status: 1,
           },
         });
 
@@ -38,17 +39,85 @@ class CompletedDataController {
     }
   }
 
+  async completedDataUpdatePatch(req, res) {
+    try {
+      const {
+        websiteDataId,
+        urlId,
+        url,
+        websiteStatus,
+        companyLogo,
+        companyName,
+        contactNo1,
+        contactNo2,
+        emailId1,
+        emailId2,
+        faxNo,
+        businessType,
+        address,
+        companyProfile,
+        city,
+        state,
+        pinCode,
+        country,
+      } = req.body;
+
+      const loggedInUser = await getLoggedInUser(req, res);
+
+      if (loggedInUser) {
+        const newWebsiteData = await prisma.websiteData.create({
+          data: {
+            urlId,
+            url,
+            websiteStatus,
+            companyLogo,
+            companyName,
+            contactNo1,
+            contactNo2,
+            emailId1,
+            emailId2,
+            faxNo,
+            businessType,
+            address,
+            companyProfile,
+            city,
+            state,
+            pinCode,
+            country,
+            status: 1,
+            userId: loggedInUser.id,
+          },
+        });
+
+        await prisma.websiteData.update({
+          where: {
+            id: parseInt(websiteDataId),
+          },
+          data: {
+            status: 0,
+          },
+        });
+
+        console.log("DATA WHILE UPDATING COMPLETED DATA ->", req.body);
+
+        response.success(res, "Data updated successfully!", {
+          ...newWebsiteData,
+        });
+      }
+    } catch (error) {
+      console.log("error while updating completed work data ->", error);
+    }
+  }
   async completedDataRemoveDelete(req, res) {
     try {
       const { dataId } = req.body;
-
-      console.log("DATA ID HERE ->", dataId);
 
       if (Array.isArray(dataId)) {
         const websiteDataFound = await prisma.websiteData.findMany({
           where: {
             id: {
               in: dataId,
+              status: 1,
             },
           },
         });
@@ -62,6 +131,7 @@ class CompletedDataController {
             where: {
               id: {
                 in: dataId,
+                status: 1,
               },
             },
           });
@@ -87,6 +157,7 @@ class CompletedDataController {
         const websiteDataFound = await prisma.websiteData.findFirst({
           where: {
             id: parseInt(dataId),
+            status: 1,
           },
         });
 

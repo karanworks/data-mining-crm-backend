@@ -133,6 +133,7 @@ model WebsiteData{
   pinCode String
   country String
   userId Int
+  status Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
