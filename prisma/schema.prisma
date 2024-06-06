@@ -141,7 +141,7 @@ model WebsiteData{
 
 model SubmittedData{
   id Int @id @default(autoincrement())
-  token Int
+  token String
   formId Int
   userId Int
   status Int

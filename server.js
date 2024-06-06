@@ -13,6 +13,7 @@ const bankCodeRouter = require("./routes/bankCode");
 const addDataRouter = require("./routes/addData");
 const addWorkDataRouter = require("./routes/addWorkData");
 const completedDataRouter = require("./routes/completedData");
+const reportRouter = require("./routes/report");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -56,6 +57,7 @@ app.use("/", bankCodeRouter);
 app.use("/", addDataRouter);
 app.use("/", addWorkDataRouter);
 app.use("/", completedDataRouter);
+app.use("/", reportRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);

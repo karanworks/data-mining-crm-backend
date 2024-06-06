@@ -295,8 +295,6 @@ class CompletedDataController {
 
       const { users, startDate, endDate, businessType } = req.body;
 
-      console.log("USERS HERE ->", users);
-
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
           where: {
@@ -368,7 +366,7 @@ class CompletedDataController {
       const { forms } = req.body;
 
       const loggedInUser = await getLoggedInUser(req, res);
-      const token = Date.now();
+      const token = Date.now().toString();
 
       if (loggedInUser) {
         for (let form of forms) {
