@@ -119,6 +119,7 @@ class CompletedDataController {
       console.log("error while updating completed work data ->", error);
     }
   }
+
   async completedDataRemoveDelete(req, res) {
     try {
       const { dataId } = req.body;
@@ -292,7 +293,9 @@ class CompletedDataController {
     try {
       const token = req.cookies.token;
 
-      const { startDate, endDate, businessType } = req.body;
+      const { users, startDate, endDate, businessType } = req.body;
+
+      console.log("USERS HERE ->", users);
 
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
@@ -308,9 +311,20 @@ class CompletedDataController {
 
         const whereConditions = {
           status: 1,
-          businessType,
           AND: [],
         };
+
+        if (users.length > 0) {
+          whereConditions.AND.push({
+            username: {
+              in: users,
+            },
+          });
+        }
+
+        if (businessType) {
+          whereConditions.AND.push({ businessType });
+        }
 
         if (startDate) {
           whereConditions.AND.push({
@@ -346,6 +360,32 @@ class CompletedDataController {
       }
     } catch (error) {
       console.log("error while getting completed data ", error);
+    }
+  }
+
+  async completedDataSubmit(req, res) {
+    try {
+      const { forms } = req.body;
+
+      const loggedInUser = await getLoggedInUser(req, res);
+      const token = Date.now();
+
+      if (loggedInUser) {
+        for (let form of forms) {
+          await prisma.submittedData.create({
+            data: {
+              token,
+              userId: form.userId,
+              formId: form.id,
+              status: 0,
+            },
+          });
+        }
+
+        response.success(res, "Data updated successfully!", {});
+      }
+    } catch (error) {
+      console.log("error while updating completed work data ->", error);
     }
   }
 }

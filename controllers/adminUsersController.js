@@ -42,11 +42,21 @@ class AdminUsers {
             },
           });
 
+          // users of other admins as well
+          const allUsers = await prisma.user.findMany({
+            where: {
+              id: {
+                not: loggedInUser.id,
+              },
+            },
+          });
+
           const { password, ...adminDataWithoutPassword } = loggedInUser;
 
           response.success(res, "Users fetched", {
             ...adminDataWithoutPassword,
             users,
+            allUsers,
           });
         } else {
           response.error(res, "User not active");

@@ -138,3 +138,13 @@ model WebsiteData{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
+
+model SubmittedData{
+  id Int @id @default(autoincrement())
+  token Int
+  formId Int
+  userId Int
+  status Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}

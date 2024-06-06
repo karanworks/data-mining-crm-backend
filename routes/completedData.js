@@ -26,5 +26,9 @@ CompletedDataRouter.post(
   "/completed-data/filter-data",
   CompletedDataController.completedDataFilterData
 );
+CompletedDataRouter.post(
+  "/completed-data/submit-data",
+  CompletedDataController.completedDataSubmit
+);
 
 module.exports = CompletedDataRouter;
