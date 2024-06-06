@@ -292,6 +292,8 @@ class CompletedDataController {
     try {
       const token = req.cookies.token;
 
+      const { startDate, endDate, businessType } = req.body;
+
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
           where: {
@@ -299,19 +301,42 @@ class CompletedDataController {
           },
         });
 
-        console.log("BODY WHILE FILTERING ->", req.body);
-        // let filteredData = await prisma.websiteData.findMany({
-        //   where: {
-        //     userId: loggedInUser.id,
-        //     status: 1,
-        //   },
-        // });
+        const startParsed = new Date(startDate.split("/").reverse().join("-"));
+        const endParsed = new Date(endDate.split("/").reverse().join("-"));
+        // Adjust end date to include the entire day
+        endParsed.setHours(23, 59, 59, 999);
+
+        const whereConditions = {
+          status: 1,
+          businessType,
+          AND: [],
+        };
+
+        if (startDate) {
+          whereConditions.AND.push({
+            createdAt: {
+              gte: startParsed,
+            },
+          });
+        }
+
+        if (endDate) {
+          whereConditions.AND.push({
+            createdAt: {
+              lte: endParsed,
+            },
+          });
+        }
+
+        const filteredData = await prisma.websiteData.findMany({
+          where: whereConditions,
+        });
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Completed Data fetched!", {
           ...adminDataWithoutPassword,
-          completedWorkData,
+          filteredData,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
