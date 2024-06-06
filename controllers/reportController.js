@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const response = require("../utils/response");
 
 class ReportRouter {
-  async completedDataGet(req, res) {
+  async reportDataGet(req, res) {
     try {
       const token = req.cookies.token;
 
@@ -75,6 +75,52 @@ class ReportRouter {
         response.success(res, "Report Data fetched!", {
           ...adminDataWithoutPassword,
           reportData,
+        });
+      } else {
+        // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
+        res
+          .status(401)
+          .json({ message: "user not already logged in.", status: "failure" });
+      }
+    } catch (error) {
+      console.log("error while getting completed data ", error);
+    }
+  }
+  async reportDataFormsGet(req, res) {
+    try {
+      const token = req.cookies.token;
+      const { tokenId } = req.params;
+
+      if (token) {
+        const loggedInUser = await prisma.user.findFirst({
+          where: {
+            token: parseInt(token),
+          },
+        });
+
+        const submittedData = await prisma.submittedData.findMany({
+          where: {
+            token: tokenId,
+          },
+        });
+
+        const formIds = submittedData?.map((form) => {
+          return form.formId;
+        });
+
+        const forms = await prisma.websiteData.findMany({
+          where: {
+            id: {
+              in: formIds,
+            },
+          },
+        });
+
+        const { password, ...adminDataWithoutPassword } = loggedInUser;
+
+        response.success(res, "Report Data fetched!", {
+          ...adminDataWithoutPassword,
+          reportDataForms: forms,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
