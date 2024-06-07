@@ -148,3 +148,15 @@ model SubmittedData{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
+
+
+model CheckForm{
+  id Int @id @default(autoincrement())
+  formId Int
+  userId Int
+  token String
+  fieldName String
+  status Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}

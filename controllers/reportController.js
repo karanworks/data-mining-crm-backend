@@ -104,6 +104,8 @@ class ReportRouter {
           },
         });
 
+        console.log("SUBMITTED DATA STATUS ->", submittedData);
+
         const formIds = submittedData?.map((form) => {
           return form.formId;
         });
@@ -116,11 +118,24 @@ class ReportRouter {
           },
         });
 
+        const formWithStatus = [];
+
+        for (let form of forms) {
+          const formStatus = await prisma.submittedData.findFirst({
+            where: {
+              formId: form.id,
+              token: tokenId,
+            },
+          });
+
+          formWithStatus.push({ ...form, status: formStatus?.status });
+        }
+
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
         response.success(res, "Report Data fetched!", {
           ...adminDataWithoutPassword,
-          reportDataForms: forms,
+          reportDataForms: formWithStatus,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
