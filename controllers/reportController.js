@@ -104,8 +104,6 @@ class ReportRouter {
           },
         });
 
-        console.log("SUBMITTED DATA STATUS ->", submittedData);
-
         const formIds = submittedData?.map((form) => {
           return form.formId;
         });
