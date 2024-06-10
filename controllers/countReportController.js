@@ -17,9 +17,6 @@ class CountReportController {
 
         const totalClients = await prisma.client.findMany({});
 
-        // const assignedData = await Promise.all(
-        //   totalClients?.map(async (client) => {
-
         for (let client of totalClients) {
           const totalUsers = await prisma.user.findMany({
             where: {
@@ -145,13 +142,9 @@ class CountReportController {
           client.verifiedData = verfiedData.flat();
           client.correct = correctFields.flat();
           client.incorrect = incorrectFields.flat();
-          // client.correct = correctFields;
-          // client.incorrect = incorrectFields;
+
           client.workingUsers = workingUsers;
         }
-
-        //   })
-        // );
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
@@ -173,11 +166,9 @@ class CountReportController {
   async filterReportData(req, res) {
     try {
       const token = req.cookies.token;
-
       const { users, startDate, endDate } = req.body;
 
       if (token) {
-        console.log("FILTER API CALLED", users, startDate, endDate);
         const loggedInUser = await prisma.user.findFirst({
           where: {
             token: parseInt(token),
@@ -186,54 +177,146 @@ class CountReportController {
 
         const startParsed = new Date(startDate?.split("/").reverse().join("-"));
         const endParsed = new Date(endDate?.split("/").reverse().join("-"));
-        // Adjust end date to include the entire day
         endParsed.setHours(23, 59, 59, 999);
 
         const whereConditions = {
+          username: {
+            in: users,
+          },
           status: 1,
-          AND: [],
         };
 
-        if (users.length > 0) {
-          whereConditions.AND.push({
-            username: {
-              in: users,
-            },
-          });
-        }
-
         if (startDate) {
-          whereConditions.AND.push({
-            createdAt: {
-              gte: startParsed,
-            },
-          });
+          whereConditions.createdAt = { gte: startParsed };
         }
 
         if (endDate) {
-          whereConditions.AND.push({
-            createdAt: {
-              lte: endParsed,
+          if (!whereConditions.createdAt) {
+            whereConditions.createdAt = {};
+          }
+          whereConditions.createdAt.lte = endParsed;
+        }
+
+        const totalUsers = await prisma.user.findMany({
+          where: whereConditions,
+        });
+
+        const userClientEmails = totalUsers.map((user) => user.email);
+
+        const totalClients = await prisma.client.findMany({
+          where: {
+            email: {
+              in: userClientEmails,
             },
-          });
+          },
+        });
+
+        for (let client of totalClients) {
+          const clientUsers = totalUsers.filter(
+            (user) => user.email === client.email
+          );
+
+          const totalAssignedDataOfUser = await Promise.all(
+            clientUsers.map(async (user) => {
+              const userAssignedData = await prisma.assignedData.findMany({
+                where: {
+                  userId: user.id,
+                },
+              });
+              return userAssignedData.length > 0 ? userAssignedData : null;
+            })
+          );
+
+          const totalCompletedDataOfUser = await Promise.all(
+            clientUsers.map(async (user) => {
+              const userWebsiteData = await prisma.websiteData.findMany({
+                where: {
+                  userId: user.id,
+                  status: 1,
+                },
+              });
+              return userWebsiteData.length > 0 ? userWebsiteData : null;
+            })
+          );
+
+          const totalCheckingData = await Promise.all(
+            clientUsers.map(async (user) => {
+              const userSubmittedData = await prisma.submittedData.findMany({
+                where: {
+                  userId: user.id,
+                },
+              });
+              return userSubmittedData.length > 0 ? userSubmittedData : null;
+            })
+          );
+
+          const totalVerifiedData = await Promise.all(
+            clientUsers.map(async (user) => {
+              const userVerifiedData = await prisma.submittedData.findMany({
+                where: {
+                  userId: user.id,
+                  status: 1,
+                },
+              });
+              return userVerifiedData.length > 0 ? userVerifiedData : null;
+            })
+          );
+
+          const totalCorrectFields = await Promise.all(
+            clientUsers.map(async (user) => {
+              const userCorrectFields = await prisma.checkForm.findMany({
+                where: {
+                  userId: user.id,
+                  status: 1,
+                  correct: 1,
+                },
+              });
+              return userCorrectFields.length > 0 ? userCorrectFields : null;
+            })
+          );
+
+          const totalIncorrectFields = await Promise.all(
+            clientUsers.map(async (user) => {
+              const userIncorrectFields = await prisma.checkForm.findMany({
+                where: {
+                  userId: user.id,
+                  status: 1,
+                  correct: 0,
+                },
+              });
+              return userIncorrectFields.length > 0
+                ? userIncorrectFields
+                : null;
+            })
+          );
+
+          client.totalUsers = clientUsers;
+          client.totalAssignedData = totalAssignedDataOfUser
+            .filter(Boolean)
+            .flat();
+          client.totalCompletedData = totalCompletedDataOfUser
+            .filter(Boolean)
+            .flat();
+          client.forChecking = totalCheckingData.filter(Boolean).flat();
+          client.verifiedData = totalVerifiedData.filter(Boolean).flat();
+          client.correct = totalCorrectFields.filter(Boolean).flat();
+          client.incorrect = totalIncorrectFields.filter(Boolean).flat();
+          client.workingUsers = clientUsers.filter(Boolean);
         }
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-        response.success(res, "Completed Data fetched!", {
+        response.success(res, "Filtered report data fetched!", {
           ...adminDataWithoutPassword,
-        });
-        response.success(res, "Completed Data fetched!", {
-          ...adminDataWithoutPassword,
+          filteredData: totalClients,
         });
       } else {
-        // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
         res
           .status(401)
-          .json({ message: "user not already logged in.", status: "failure" });
+          .json({ message: "User not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("error while getting completed data ", error);
+      console.log("Error while getting filtered report data", error);
     }
   }
 }
