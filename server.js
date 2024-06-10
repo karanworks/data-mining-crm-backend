@@ -9,12 +9,12 @@ const adminAuthRouter = require("./routes/adminAuth");
 const adminUsersRouter = require("./routes/adminUsers");
 const mappingRouter = require("./routes/mapping");
 const clientRouter = require("./routes/client");
-const bankCodeRouter = require("./routes/bankCode");
 const addDataRouter = require("./routes/addData");
 const addWorkDataRouter = require("./routes/addWorkData");
 const completedDataRouter = require("./routes/completedData");
 const reportRouter = require("./routes/report");
 const checkFormRouter = require("./routes/checkForm");
+const countReportRouter = require("./routes/countReport");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -54,12 +54,12 @@ app.use("/", adminUsersRouter);
 app.use("/", roleRouter);
 app.use("/", mappingRouter);
 app.use("/", clientRouter);
-app.use("/", bankCodeRouter);
 app.use("/", addDataRouter);
 app.use("/", addWorkDataRouter);
 app.use("/", completedDataRouter);
 app.use("/", reportRouter);
 app.use("/", checkFormRouter);
+app.use("/", countReportRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
