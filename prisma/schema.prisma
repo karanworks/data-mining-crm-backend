@@ -161,3 +161,17 @@ model CheckForm{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
+
+model Invoice{
+  id Int @id @default(autoincrement())
+  token String
+  client String
+  formRate Int
+  noOfUsers Int
+  totalForms Int
+  correctFields Int
+  incorrectFields Int
+  totalAmount Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}

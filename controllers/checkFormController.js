@@ -20,7 +20,7 @@ class CheckFormController {
         });
       }
     } catch (error) {
-      console.log("error while checking form data ->", error);
+      console.log("error while re-checking form data ->", error);
     }
   }
   async checkFormPost(req, res) {
@@ -39,6 +39,7 @@ class CheckFormController {
               formId,
               userId,
               token,
+              status: 1,
             },
           });
 
@@ -59,6 +60,7 @@ class CheckFormController {
                 formId,
                 userId,
                 token,
+                status: 1,
               },
             });
           } else {
@@ -69,6 +71,7 @@ class CheckFormController {
                 formId,
                 userId,
                 token,
+                status: 1,
               },
             });
           }
