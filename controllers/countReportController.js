@@ -66,8 +66,20 @@ class CountReportController {
                 },
               });
 
+              const formWentForChecking = [];
+
+              for (let data of userSubmittedData) {
+                const form = await prisma.websiteData.findFirst({
+                  where: {
+                    id: data.formId,
+                  },
+                });
+
+                formWentForChecking.push(form);
+              }
+
               if (userSubmittedData.length > 0) {
-                return userSubmittedData;
+                return formWentForChecking;
               } else {
                 return null;
               }
@@ -83,8 +95,19 @@ class CountReportController {
                 },
               });
 
+              const checkedForms = [];
+              for (let data of userVerifiedData) {
+                const form = await prisma.websiteData.findFirst({
+                  where: {
+                    id: data.formId,
+                  },
+                });
+
+                checkedForms.push(form);
+              }
+
               if (userVerifiedData.length > 0) {
-                return userVerifiedData;
+                return checkedForms;
               } else {
                 return null;
               }
@@ -246,6 +269,7 @@ class CountReportController {
                   userId: user.id,
                 },
               });
+
               return userSubmittedData.length > 0 ? userSubmittedData : null;
             })
           );
