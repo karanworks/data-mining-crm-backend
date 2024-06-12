@@ -7,8 +7,6 @@ class InvoiceController {
   async invoiceDataGet(req, res) {
     try {
       const token = req.cookies.token;
-      let correctFields;
-      let incorrectFields;
 
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
@@ -82,7 +80,15 @@ class InvoiceController {
   async createInvoicePost(req, res) {
     try {
       const token = req.cookies.token;
-      const { users, startDate, endDate } = req.body;
+      const {
+        client,
+        formRate,
+        totalUsers,
+        totalForms,
+        correctFields,
+        incorrectFields,
+        totalAmount,
+      } = req.body;
 
       if (token) {
         const loggedInUser = await prisma.user.findFirst({
@@ -91,149 +97,93 @@ class InvoiceController {
           },
         });
 
-        const startParsed = new Date(startDate?.split("/").reverse().join("-"));
-        const endParsed = new Date(endDate?.split("/").reverse().join("-"));
-        endParsed.setHours(23, 59, 59, 999);
-
-        const whereConditions = {
-          username: {
-            in: users,
+        const submittedData = await prisma.submittedData.findMany({
+          where: {
+            token: req.body.token,
           },
-          status: 1,
-        };
-
-        if (startDate) {
-          whereConditions.createdAt = { gte: startParsed };
-        }
-
-        if (endDate) {
-          if (!whereConditions.createdAt) {
-            whereConditions.createdAt = {};
-          }
-          whereConditions.createdAt.lte = endParsed;
-        }
-
-        const totalUsers = await prisma.user.findMany({
-          where: whereConditions,
         });
 
-        const userClientEmails = totalUsers.map((user) => user.email);
+        const formIds = submittedData.map((data) => {
+          return data.formId;
+        });
 
-        const totalClients = await prisma.client.findMany({
+        const formsData = await prisma.websiteData.findMany({
           where: {
-            email: {
-              in: userClientEmails,
+            id: {
+              in: formIds,
             },
           },
         });
 
-        for (let client of totalClients) {
-          const clientUsers = totalUsers.filter(
-            (user) => user.email === client.email
-          );
+        console.log("SUBMITTED FORM DATA ->", formsData);
 
-          const totalAssignedDataOfUser = await Promise.all(
-            clientUsers.map(async (user) => {
-              const userAssignedData = await prisma.assignedData.findMany({
-                where: {
-                  userId: user.id,
-                },
-              });
-              return userAssignedData.length > 0 ? userAssignedData : null;
-            })
-          );
+        // Find the oldest and latest createdAt dates
+        if (formsData.length > 0) {
+          let oldestDate = new Date(formsData[0].createdAt);
+          let latestDate = new Date(formsData[0].createdAt);
 
-          const totalCompletedDataOfUser = await Promise.all(
-            clientUsers.map(async (user) => {
-              const userWebsiteData = await prisma.websiteData.findMany({
-                where: {
-                  userId: user.id,
-                  status: 1,
-                },
-              });
-              return userWebsiteData.length > 0 ? userWebsiteData : null;
-            })
-          );
+          formsData.forEach((data) => {
+            const createdAt = new Date(data.createdAt);
+            if (createdAt < oldestDate) {
+              oldestDate = createdAt;
+            }
+            if (createdAt > latestDate) {
+              latestDate = createdAt;
+            }
+          });
 
-          const totalCheckingData = await Promise.all(
-            clientUsers.map(async (user) => {
-              const userSubmittedData = await prisma.submittedData.findMany({
-                where: {
-                  userId: user.id,
-                },
-              });
+          // Convert to IST (Indian Standard Time)
+          const offsetIST = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+          const oldestDateIST = new Date(oldestDate.getTime() + offsetIST);
+          const latestDateIST = new Date(latestDate.getTime() + offsetIST);
 
-              return userSubmittedData.length > 0 ? userSubmittedData : null;
-            })
-          );
+          // Extract only the date part (YYYY-MM-DD)
+          const formatDateToIST = (date) => {
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Months are 0-based
+            const day = String(date.getUTCDate()).padStart(2, "0");
+            return `${day}-${month}-${year}`;
+          };
 
-          const totalVerifiedData = await Promise.all(
-            clientUsers.map(async (user) => {
-              const userVerifiedData = await prisma.submittedData.findMany({
-                where: {
-                  userId: user.id,
-                  status: 1,
-                },
-              });
-              return userVerifiedData.length > 0 ? userVerifiedData : null;
-            })
-          );
+          const oldestDateISTFormatted = formatDateToIST(oldestDateIST);
+          const latestDateISTFormatted = formatDateToIST(latestDateIST);
 
-          const totalCorrectFields = await Promise.all(
-            clientUsers.map(async (user) => {
-              const userCorrectFields = await prisma.checkForm.findMany({
-                where: {
-                  userId: user.id,
-                  status: 1,
-                  correct: 1,
-                },
-              });
-              return userCorrectFields.length > 0 ? userCorrectFields : null;
-            })
-          );
+          // Add date range to the new invoice
+          const newInvoice = await prisma.invoice.create({
+            data: {
+              token: req.body.token,
+              client,
+              formRate,
+              noOfUsers: totalUsers,
+              totalForms,
+              correctFields,
+              incorrectFields,
+              totalAmount,
+              startDate: oldestDateISTFormatted.toString(),
+              endDate: latestDateISTFormatted.toString(),
+            },
+          });
 
-          const totalIncorrectFields = await Promise.all(
-            clientUsers.map(async (user) => {
-              const userIncorrectFields = await prisma.checkForm.findMany({
-                where: {
-                  userId: user.id,
-                  status: 1,
-                  correct: 0,
-                },
-              });
-              return userIncorrectFields.length > 0
-                ? userIncorrectFields
-                : null;
-            })
-          );
+          const { password, ...adminDataWithoutPassword } = loggedInUser;
 
-          client.totalUsers = clientUsers;
-          client.totalAssignedData = totalAssignedDataOfUser
-            .filter(Boolean)
-            .flat();
-          client.totalCompletedData = totalCompletedDataOfUser
-            .filter(Boolean)
-            .flat();
-          client.forChecking = totalCheckingData.filter(Boolean).flat();
-          client.verifiedData = totalVerifiedData.filter(Boolean).flat();
-          client.correct = totalCorrectFields.filter(Boolean).flat();
-          client.incorrect = totalIncorrectFields.filter(Boolean).flat();
-          client.workingUsers = clientUsers.filter(Boolean);
+          response.success(res, "Invoice created!", {
+            ...adminDataWithoutPassword,
+          });
+        } else {
+          res
+            .status(404)
+            .json({ message: "No forms data found.", status: "failure" });
         }
-
-        const { password, ...adminDataWithoutPassword } = loggedInUser;
-
-        response.success(res, "Filtered report data fetched!", {
-          ...adminDataWithoutPassword,
-          filteredData: totalClients,
-        });
       } else {
         res
           .status(401)
           .json({ message: "User not already logged in.", status: "failure" });
       }
     } catch (error) {
-      console.log("Error while getting filtered report data", error);
+      console.log("Error while getting creating invoice", error);
+      res
+        .status(500)
+        .json({ message: "Internal server error.", status: "failure" });
     }
   }
 }

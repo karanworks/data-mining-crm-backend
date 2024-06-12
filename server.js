@@ -16,6 +16,7 @@ const reportRouter = require("./routes/report");
 const checkFormRouter = require("./routes/checkForm");
 const countReportRouter = require("./routes/countReport");
 const invoiceRouter = require("./routes/invoice");
+const paymentRouter = require("./routes/payment");
 
 // cookie parser
 const cookieParser = require("cookie-parser");
@@ -62,6 +63,7 @@ app.use("/", reportRouter);
 app.use("/", checkFormRouter);
 app.use("/", countReportRouter);
 app.use("/", invoiceRouter);
+app.use("/", paymentRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
