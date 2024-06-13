@@ -393,6 +393,7 @@ class AdminAuthController {
       console.log("error while loggin in user, get method ", error);
     }
   }
+
   async adminLogoutGet(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
@@ -414,6 +415,38 @@ class AdminAuthController {
       }
     } catch (error) {
       console.log("error while loggin in user ", error);
+    }
+  }
+
+  async userChangePassword(req, res) {
+    try {
+      const loggedInUser = await getLoggedInUser(req, res);
+
+      const { currentPassword, newPassword } = req.body;
+
+      if (loggedInUser) {
+        if (loggedInUser.password !== currentPassword) {
+          response.error(
+            res,
+            "Current password doesn't match with our records!"
+          );
+        } else {
+          await prisma.user.update({
+            where: {
+              id: loggedInUser.id,
+            },
+            data: {
+              password: newPassword,
+            },
+          });
+
+          response.success(res, "Password changed successfully");
+        }
+      } else {
+        response.error(res, "User not logged in");
+      }
+    } catch (error) {
+      console.log("Error while changing password ->", error);
     }
   }
 }

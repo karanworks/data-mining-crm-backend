@@ -5,6 +5,10 @@ const adminAuthController = require("../controllers/adminAuthController");
 adminAuthRouter.post("/login", adminAuthController.userLoginPost);
 adminAuthRouter.get("/login", adminAuthController.userLoginGet);
 adminAuthRouter.post("/register", adminAuthController.userRegisterPost);
+adminAuthRouter.patch(
+  "/change-password",
+  adminAuthController.userChangePassword
+);
 adminAuthRouter.post("/user/register", adminAuthController.userRegisterPost);
 adminAuthRouter.patch(
   "/user/:userId/edit",
