@@ -88,6 +88,7 @@ class InvoiceController {
         correctFields,
         incorrectFields,
         totalAmount,
+        costPerField,
       } = req.body;
 
       if (token) {
@@ -114,8 +115,6 @@ class InvoiceController {
             },
           },
         });
-
-        console.log("SUBMITTED FORM DATA ->", formsData);
 
         // Find the oldest and latest createdAt dates
         if (formsData.length > 0) {
@@ -158,7 +157,8 @@ class InvoiceController {
               totalForms,
               correctFields,
               incorrectFields,
-              totalAmount,
+              totalAmount: parseFloat(totalAmount),
+              costPerField: parseFloat(costPerField),
               startDate: oldestDateISTFormatted.toString(),
               endDate: latestDateISTFormatted.toString(),
             },

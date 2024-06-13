@@ -171,7 +171,8 @@ model Invoice{
   totalForms Int
   correctFields Int
   incorrectFields Int
-  totalAmount Int
+  totalAmount Float
+  costPerField Float
   startDate String
   endDate String
   createdAt DateTime @default(now())
