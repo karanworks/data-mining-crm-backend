@@ -80,6 +80,7 @@ class CompletedDataController {
       if (loggedInUser) {
         const newWebsiteData = await prisma.websiteData.create({
           data: {
+            username: loggedInUser.username,
             urlId,
             url,
             websiteStatus,
