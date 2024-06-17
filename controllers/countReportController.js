@@ -18,12 +18,30 @@ class CountReportController {
         const totalClients = await prisma.client.findMany({});
 
         for (let client of totalClients) {
-          const totalUsers = await prisma.user.findMany({
+          const totalUsersOfSingleClient = await prisma.user.findMany({
             where: {
               email: client.email,
               status: 1,
             },
           });
+          const totalUsers = await Promise.all(
+            totalUsersOfSingleClient.map(async (user) => {
+              const dataAssigned = await prisma.assignedData.findMany({
+                where: {
+                  userId: user.id,
+                },
+              });
+
+              const completedData = await prisma.assignedData.findMany({
+                where: {
+                  userId: user.id,
+                  status: 1,
+                },
+              });
+
+              return { ...user, dataAssigned, completedData };
+            })
+          );
 
           const totalAssignedDataOfUser = await Promise.all(
             totalUsers?.map(async (user) => {

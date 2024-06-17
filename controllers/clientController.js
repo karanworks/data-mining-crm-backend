@@ -319,11 +319,30 @@ class ClientController {
     try {
       const { clientEmail } = req.params;
 
-      const clientUsers = await prisma.user.findMany({
+      const clientAllUsers = await prisma.user.findMany({
         where: {
           email: clientEmail,
         },
       });
+
+      // client users with assisgned data and completed data
+      const clientUsers = await Promise.all(
+        clientAllUsers.map(async (user) => {
+          const dataAssigned = await prisma.assignedData.findMany({
+            where: {
+              userId: user.id,
+            },
+          });
+          const completedData = await prisma.assignedData.findMany({
+            where: {
+              userId: user.id,
+              status: 1,
+            },
+          });
+
+          return { ...user, dataAssigned, completedData };
+        })
+      );
 
       response.success(res, "Client users fetched!", clientUsers);
     } catch (error) {
