@@ -197,6 +197,8 @@ class AdminAuthController {
       const { usernameOrEmail, password } = req.body;
       const userIp = req.socket.remoteAddress;
 
+      console.log("USERNAME OR EMAIL ->", req.body);
+
       let userFound = await prisma.user.findFirst({
         where: {
           OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
@@ -251,7 +253,7 @@ class AdminAuthController {
         res.cookie("token", loginToken, {
           expires: expirationDate,
           httpOnly: true,
-          secure: true,
+          secure: false,
         });
 
         response.success(res, "User logged in!", {

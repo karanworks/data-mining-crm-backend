@@ -78,9 +78,21 @@ class CompletedDataController {
       const loggedInUser = await getLoggedInUser(req, res);
 
       if (loggedInUser) {
+        const websiteData = await prisma.websiteData.findFirst({
+          where: {
+            id: urlId,
+          },
+        });
+
+        const user = await prisma.user.findFirst({
+          where: {
+            id: websiteData.userId,
+          },
+        });
+
         const newWebsiteData = await prisma.websiteData.create({
           data: {
-            username: loggedInUser.username,
+            username: user.username,
             urlId,
             url,
             websiteStatus,

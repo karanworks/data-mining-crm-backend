@@ -28,14 +28,16 @@ app.use(express.json());
 // cors connection
 app.use(
   cors({
-    origin: "http://localhost:3004",
+    origin: "http://192.168.1.5:3004",
+    // origin: "http://localhost:3004",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3004");
+  res.setHeader("Access-Control-Allow-Origin", "http://192.168.1.5:3004");
+  // res.setHeader("Access-Control-Allow-Origin", "http://localhost:3004");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, PATCH, DELETE"
