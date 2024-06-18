@@ -197,8 +197,6 @@ class AdminAuthController {
       const { usernameOrEmail, password } = req.body;
       const userIp = req.socket.remoteAddress;
 
-      console.log("USERNAME OR EMAIL ->", req.body);
-
       let userFound = await prisma.user.findFirst({
         where: {
           OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
@@ -208,6 +206,11 @@ class AdminAuthController {
       if (!userFound) {
         response.error(res, "No user found with this email!");
       } else if (password === userFound.password) {
+        // if (userFound.isActive) {
+        //   response.error(res, "You already logged in somewhere else!");
+        //   return;
+        // }
+
         // checking if user is active to prevent him logging again
         if (!userFound.status) {
           response.error(res, "Your account has been deactivated!");
@@ -253,7 +256,7 @@ class AdminAuthController {
         res.cookie("token", loginToken, {
           expires: expirationDate,
           httpOnly: true,
-          secure: false,
+          secure: true,
         });
 
         response.success(res, "User logged in!", {
@@ -369,9 +372,7 @@ class AdminAuthController {
           select: {
             id: true,
             username: true,
-            password: true,
             email: true,
-            agentMobile: true,
             roleId: true,
           },
         });
@@ -387,9 +388,7 @@ class AdminAuthController {
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
-        res
-          .status(401)
-          .json({ message: "user not already logged in.", status: "failure" });
+        response.success(res, "User not logged in!", {});
       }
     } catch (error) {
       console.log("error while loggin in user, get method ", error);
@@ -399,6 +398,8 @@ class AdminAuthController {
   async adminLogoutGet(req, res) {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
+
+      console.log("LOGOUT API CALLED");
 
       if (loggedInUser) {
         await prisma.user.update({
@@ -412,8 +413,6 @@ class AdminAuthController {
 
         res.clearCookie("token");
         response.success(res, "User logged out successflly!");
-      } else {
-        response.error(res, "User not logged in!");
       }
     } catch (error) {
       console.log("error while loggin in user ", error);

@@ -28,16 +28,16 @@ app.use(express.json());
 // cors connection
 app.use(
   cors({
-    origin: "http://192.168.1.5:3004",
-    // origin: "http://localhost:3004",
+    // origin: "http://192.168.1.5:3004",
+    origin: "http://localhost:3004",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://192.168.1.5:3004");
-  // res.setHeader("Access-Control-Allow-Origin", "http://localhost:3004");
+  // res.setHeader("Access-Control-Allow-Origin", "http://192.168.1.5:3004");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3004");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, PATCH, DELETE"
@@ -52,20 +52,20 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
-app.use("/", homeRouter);
-app.use("/", adminAuthRouter);
-app.use("/", adminUsersRouter);
-app.use("/", roleRouter);
-app.use("/", mappingRouter);
-app.use("/", clientRouter);
-app.use("/", addDataRouter);
-app.use("/", addWorkDataRouter);
-app.use("/", completedDataRouter);
-app.use("/", reportRouter);
-app.use("/", checkFormRouter);
-app.use("/", countReportRouter);
-app.use("/", invoiceRouter);
-app.use("/", paymentRouter);
+app.use("/data-mining/", homeRouter);
+app.use("/data-mining/", adminAuthRouter);
+app.use("/data-mining/", adminUsersRouter);
+app.use("/data-mining/", roleRouter);
+app.use("/data-mining/", mappingRouter);
+app.use("/data-mining/", clientRouter);
+app.use("/data-mining/", addDataRouter);
+app.use("/data-mining/", addWorkDataRouter);
+app.use("/data-mining/", completedDataRouter);
+app.use("/data-mining/", reportRouter);
+app.use("/data-mining/", checkFormRouter);
+app.use("/data-mining/", countReportRouter);
+app.use("/data-mining/", invoiceRouter);
+app.use("/data-mining/", paymentRouter);
 
 app.listen(process.env.PORT || 3003, () => {
   console.log(`Server listening at port no -> ${process.env.PORT}`);
