@@ -2,19 +2,19 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const response = require("../utils/response");
 const getLoggedInUser = require("../utils/getLoggedInUser");
+const session = require("../utils/session");
 
 class AddWorkDataController {
   async addWorkDataGet(req, res) {
     try {
       const token = req.cookies.token;
 
-      if (token) {
-        const loggedInUser = await prisma.user.findFirst({
-          where: {
-            token: parseInt(token),
-          },
-        });
-
+      const loggedInUser = await prisma.user.findFirst({
+        where: {
+          token: parseInt(token),
+        },
+      });
+      if (loggedInUser) {
         const assignedWorkData = await prisma.assignedData.findMany({
           where: {
             userId: loggedInUser.id,
@@ -24,15 +24,14 @@ class AddWorkDataController {
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
+        session(loggedInUser.id);
         response.success(res, "Assigned Data fetched!", {
           ...adminDataWithoutPassword,
           assignedWorkData,
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
-        res
-          .status(401)
-          .json({ message: "user not already logged in.", status: "failure" });
+        response.error(res, "User not logged in!", {});
       }
     } catch (error) {
       console.log("error while getting assigned data ", error);
@@ -105,9 +104,12 @@ class AddWorkDataController {
           },
         });
 
+        session(loggedInUser.id);
         response.success(res, "Work Data submitted successfully!", {
           ...newWebsiteData,
         });
+      } else {
+        response.error(res, "User not logged in!");
       }
     } catch (error) {
       console.log("error while adding work data ->", error);

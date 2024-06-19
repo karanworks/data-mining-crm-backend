@@ -12,13 +12,12 @@ class ClientController {
     try {
       const token = req.cookies.token;
 
-      if (token) {
-        const loggedInUser = await prisma.user.findFirst({
-          where: {
-            token: parseInt(token),
-          },
-        });
-
+      const loggedInUser = await prisma.user.findFirst({
+        where: {
+          token: parseInt(token),
+        },
+      });
+      if (loggedInUser) {
         const allClients = await prisma.client.findMany({
           where: {
             addedBy: loggedInUser.id,
@@ -51,9 +50,7 @@ class ClientController {
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
-        res
-          .status(401)
-          .json({ message: "user not already logged in.", status: "failure" });
+        response.error(res, "User not logged in!");
       }
     } catch (error) {
       console.log("error while getting clients ", error);

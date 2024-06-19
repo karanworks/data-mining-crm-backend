@@ -5,19 +5,20 @@ const getLoggedInUser = require("../utils/getLoggedInUser");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const path = require("path");
 const fs = require("fs");
+const session = require("../utils/session");
 
 class CompletedDataController {
   async completedDataGet(req, res) {
     try {
       const token = req.cookies.token;
 
-      if (token) {
-        const loggedInUser = await prisma.user.findFirst({
-          where: {
-            token: parseInt(token),
-          },
-        });
+      const loggedInUser = await prisma.user.findFirst({
+        where: {
+          token: parseInt(token),
+        },
+      });
 
+      if (loggedInUser) {
         let completedWorkData;
 
         if (loggedInUser.roleId === 1) {
@@ -37,15 +38,13 @@ class CompletedDataController {
 
         const { password, ...adminDataWithoutPassword } = loggedInUser;
 
+        session(loggedInUser.id);
         response.success(res, "Completed Data fetched!", {
           ...adminDataWithoutPassword,
           completedWorkData,
         });
       } else {
-        // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
-        res
-          .status(401)
-          .json({ message: "user not already logged in.", status: "failure" });
+        response.error(res, "User not logged in!", {});
       }
     } catch (error) {
       console.log("error while getting completed data ", error);

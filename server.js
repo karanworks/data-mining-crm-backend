@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
+const session = require("express-session");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 // routers
 const homeRouter = require("./routes/home");
@@ -24,6 +27,32 @@ const roleRouter = require("./routes/roles");
 
 // parsing json
 app.use(express.json());
+
+// app.use(
+//   session({
+//     secret: "some_secret_key",
+//     resave: false,
+//     saveUninitialized: true,
+//   })
+// );
+
+// Middleware to track user activity
+// app.use(async (req, res, next) => {
+//   console.log("SESSION ID GOES HERE ->", req.session.userId);
+//   if (req.session.userId) {
+//     const userSession = await prisma.session.findUnique({
+//       where: { id: req.session.sessionId },
+//     });
+
+//     if (userSession) {
+//       await prisma.session.update({
+//         where: { id: userSession.id },
+//         data: { lastActive: new Date() },
+//       });
+//     }
+//   }
+//   next();
+// });
 
 // cors connection
 app.use(

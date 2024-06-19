@@ -206,10 +206,23 @@ class AdminAuthController {
       if (!userFound) {
         response.error(res, "No user found with this email!");
       } else if (password === userFound.password) {
-        // if (userFound.isActive) {
-        //   response.error(res, "You already logged in somewhere else!");
-        //   return;
-        // }
+        const session = await prisma.session.findFirst({
+          where: {
+            userId: userFound.id,
+          },
+        });
+
+        if (session) {
+          const lastActiveTime = new Date(session.lastActive);
+          const currentTime = new Date();
+
+          const timeLimit = 30; // in seconds
+
+          if ((currentTime - lastActiveTime) / 1000 < timeLimit) {
+            response.error(res, "You are already logged in somewhere else!");
+            return;
+          }
+        }
 
         // checking if user is active to prevent him logging again
         if (!userFound.status) {
@@ -388,7 +401,7 @@ class AdminAuthController {
         });
       } else {
         // for some reason if we remove status code from response logout thunk in frontend gets triggered multiple times
-        response.success(res, "User not logged in!", {});
+        response.error(res, "User not logged in!", {});
       }
     } catch (error) {
       console.log("error while loggin in user, get method ", error);
@@ -399,8 +412,6 @@ class AdminAuthController {
     try {
       const loggedInUser = await getLoggedInUser(req, res);
 
-      console.log("LOGOUT API CALLED");
-
       if (loggedInUser) {
         await prisma.user.update({
           where: {
@@ -408,6 +419,19 @@ class AdminAuthController {
           },
           data: {
             isActive: 0,
+          },
+        });
+
+        // delete the session
+        const session = await prisma.session.findFirst({
+          where: {
+            userId: loggedInUser.id,
+          },
+        });
+
+        await prisma.session.delete({
+          where: {
+            id: session.id,
           },
         });
 
@@ -444,7 +468,7 @@ class AdminAuthController {
           response.success(res, "Password changed successfully");
         }
       } else {
-        response.error(res, "User not logged in");
+        res.status(401).json({ message: "User not logged in" });
       }
     } catch (error) {
       console.log("Error while changing password ->", error);
